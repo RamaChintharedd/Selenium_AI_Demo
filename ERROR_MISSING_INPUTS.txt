@@ -1,0 +1,1 @@
+Missing required inputs: 'bdd_features', 'language', and 'framework'. Please provide these parameters so the assistant can generate Selenium automation code using POM and SOLID principles.

@@ -1,0 +1,22 @@
+Error: Missing required inputs.
+
+This service requires the following inputs in the request payload:
+- bdd_features: an array of feature objects, each with:
+    - test_case_title: string
+    - feature_file: string (Gherkin syntax)
+- language: programming language (e.g., "Python", "Java")
+- framework: automation framework (e.g., "Selenium")
+
+Example payload:
+{
+  "language": "Python",
+  "framework": "Selenium",
+  "bdd_features": [
+    {
+      "test_case_title": "Login flow",
+      "feature_file": "Feature: Login\n  Scenario: Successful login\n    Given I am on the login page\n    When I enter valid credentials\n    Then I should see the dashboard"
+    }
+  ]
+}
+
+Please provide the required inputs and resend the request.

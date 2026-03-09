@@ -1,0 +1,28 @@
+Please provide the following inputs so I can generate the Selenium POM code:
+
+1) bdd_features: An array of BDD feature files. For each item include:
+   - test_case_title (string)
+   - feature_file (string containing Gherkin syntax)
+
+2) language: Programming language (e.g., "Python", "Java").
+
+3) framework: Automation framework (e.g., "Selenium").
+
+Optional preferences:
+- Test runner (e.g., pytest, unittest, JUnit, TestNG)
+- Desired project structure or package names
+- Browser(s) to target (Chrome, Firefox, etc.)
+
+Example payload:
+{
+  "bdd_features": [
+    {
+      "test_case_title": "Login with valid credentials",
+      "feature_file": "Feature: Login\n  Scenario: Successful login\n    Given I am on the login page\n    When I enter valid credentials\n    Then I should see the dashboard"
+    }
+  ],
+  "language": "Python",
+  "framework": "Selenium"
+}
+
+Reply with the inputs and I will generate the POM-based Selenium code separated into page objects, tests, and utilities as requested.

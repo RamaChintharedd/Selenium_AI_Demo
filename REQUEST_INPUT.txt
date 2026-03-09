@@ -1,0 +1,15 @@
+I need the following inputs to generate the Selenium POM code:
+
+1) bdd_features: An array where each item includes:
+   - test_case_title (string)
+   - feature_file (string, full Gherkin content)
+
+2) language: Programming language (e.g., "Python", "Java")
+3) framework: Automation framework (should be "Selenium")
+
+Optional (helpful):
+- Preferred test runner (e.g., pytest, unittest, JUnit, TestNG)
+- Project/package name
+- Any CI or reporting requirements
+
+Please provide the bdd_features array and the language + framework. Once provided, I will generate separate files for page objects, tests, and utilities following POM and SOLID principles.

@@ -1,0 +1,21 @@
+I cannot generate Selenium code because required inputs are missing.
+
+Please provide the following JSON payload:
+{
+  "bdd_features": [
+    {
+      "test_case_title": "<Descriptive test title>",
+      "feature_file": "<Gherkin feature file content as a string>"
+    }
+    // ... more feature files
+  ],
+  "language": "<Programming language, e.g., Python or Java>",
+  "framework": "Selenium"
+}
+
+Notes:
+- Include full Gherkin text for each feature_file.
+- Specify the language (Python or Java recommended).
+- Framework should be Selenium.
+
+After you provide these, I will generate Page Object Model (POM) structured Selenium automation code separated into page objects, tests, and utilities, and return the files as JSON.

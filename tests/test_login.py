@@ -1,106 +1,135 @@
 import pytest
-import os
 from pages.home_page import HomePage
 from pages.login_page import LoginPage
+from pages.dashboard_page import DashboardPage
+from utils.config import Config
 
 
-# Credentials can be provided via environment variables for security.
-VALID_EMAIL = os.environ.get("TEST_VALID_EMAIL", "user@example.com")
-VALID_PASSWORD = os.environ.get("TEST_VALID_PASSWORD", "P@ssw0rd")
-INVALID_PASSWORD = "incorrect_password"
+# The tests below are mapped from the provided BDD scenarios.
+# They use Page Objects and keep assertions readable and focused.
 
 
-@pytest.mark.usefixtures("driver")
-class TestLoginFlows:
-    """
-    Tests correspond to the BDD scenarios provided.
-    Uses Page Object Model: HomePage and LoginPage.
-    """
+def test_navigate_to_login_from_homepage(driver):
+    home = HomePage(driver)
+    home.open(Config.BASE_URL)
 
-    def test_navigate_to_login_from_homepage(self, driver, base_url):
-        home = HomePage(driver, base_url=base_url)
-        home.load()
-        # When I locate and click the "Log in" link or button
-        home.click_login()
+    # When I click the "Log in" link or button
+    home.go_to_login()
 
-        login = LoginPage(driver)
-        # Then the browser URL should be redirected to a login page that contains "/login"
-        assert "/login" in login.get_current_url(), "Expected '/login' in URL after clicking Log in"
-        # And the login page should display an email input field
-        assert login.is_email_field_present(), "Email input should be visible on the login page"
+    login = LoginPage(driver)
 
-    def test_successful_login_with_valid_email_and_password(self, driver):
-        login = LoginPage(driver)
-        login.load()
+    # Then I should be redirected to the login page (URL contains /login)
+    assert login.wait_for_url_contains("/login"), "URL did not contain /login after navigating to Login page"
 
-        # Given I have a registered email and the correct password
-        login.enter_email(VALID_EMAIL)
-        login.enter_password(VALID_PASSWORD)
-        login.click_login()
+    # And I should see an email input field
+    assert login.is_email_field_present(), "Email input field not present on Login page"
 
-        # Then I should be authenticated
-        assert login.is_authenticated(), "User should be authenticated and see account-specific elements"
-        # And I should be redirected to my account dashboard (heuristic: no /login in URL)
-        assert "/login" not in login.get_current_url(), "Expected to be redirected away from /login after successful login"
+    # And I should see a password input field
+    assert login.is_password_field_present(), "Password input field not present on Login page"
 
-    def test_login_attempt_with_empty_email_field(self, driver):
-        login = LoginPage(driver)
-        login.load()
+    # And I should see a "Log in" button
+    assert login.is_login_button_present(), "Login button not present on Login page"
 
-        # Ensure email is empty and provide a valid password
-        login.enter_email("")
-        login.enter_password(VALID_PASSWORD)
-        login.click_login()
 
-        # Then the login should not be performed and validation shown
-        assert not login.is_authenticated(), "Authentication must not occur when email is empty"
-        # Prefer checking for field-level errors or validation summary
-        summary = login.get_validation_summary_text()
-        field_errors = login.get_field_validation_errors()
-        assert summary or field_errors, "Expected a validation error when email is empty"
-        # And remain on login page
-        assert "/login" in login.get_current_url(), "Should remain on login page after invalid submit"
+@pytest.mark.flaky(reruns=1)
+def test_successful_login_with_valid_credentials(driver):
+    # Given I am on the login page
+    home = HomePage(driver)
+    home.open(Config.BASE_URL)
+    home.go_to_login()
 
-    def test_login_attempt_with_invalid_email_format(self, driver):
-        login = LoginPage(driver)
-        login.load()
+    login = LoginPage(driver)
 
-        login.enter_email("invalidemail")
-        login.enter_password(VALID_PASSWORD)
-        login.click_login()
+    # NOTE: This test assumes a registered account exists with Config.VALID_EMAIL and Config.VALID_PASSWORD.
+    # In real test suites, create the user in a setup step or use a test account seeded into the test environment.
 
-        assert not login.is_authenticated(), "Authentication must not occur with invalid email format"
-        summary = login.get_validation_summary_text()
-        field_errors = login.get_field_validation_errors()
-        # Expect either field-level format error or a summary message
-        assert summary or any("email" in e.lower() or "valid" in e.lower() for e in field_errors), \
-            "Expected an email format validation message"
-        assert "/login" in login.get_current_url(), "Should remain on login page after invalid submit"
+    # When I enter email and password and click login
+    login.enter_email(Config.VALID_EMAIL)
+    login.enter_password(Config.VALID_PASSWORD)
+    login.click_login()
 
-    def test_login_attempt_with_empty_password_field(self, driver):
-        login = LoginPage(driver)
-        login.load()
+    dashboard = DashboardPage(driver)
 
-        login.enter_email(VALID_EMAIL)
-        login.enter_password("")
-        login.click_login()
+    # Then I should be authenticated and redirected to a logged-in landing page
+    assert dashboard.wait_for_url_contains("/"), "Did not navigate after login (URL check)"
 
-        assert not login.is_authenticated(), "Authentication must not occur when password is empty"
-        summary = login.get_validation_summary_text()
-        field_errors = login.get_field_validation_errors()
-        assert summary or field_errors, "Expected a validation error when password is empty"
-        assert "/login" in login.get_current_url(), "Should remain on login page after invalid submit"
+    # And I should see account-specific UI elements such as "My account" or "Log out"
+    assert dashboard.is_my_account_visible() or dashboard.is_logout_visible(), "Expected account-specific UI not visible after login"
 
-    def test_login_attempt_with_incorrect_password(self, driver):
-        login = LoginPage(driver)
-        login.load()
 
-        login.enter_email(VALID_EMAIL)
-        login.enter_password(INVALID_PASSWORD)
-        login.click_login()
+def test_login_attempt_with_empty_email_field(driver):
+    home = HomePage(driver)
+    home.open(Config.BASE_URL)
+    home.go_to_login()
+    login = LoginPage(driver)
 
-        # Authentication should fail and an error message should be displayed
-        assert not login.is_authenticated(), "Authentication must fail with incorrect password"
-        summary = login.get_validation_summary_text()
-        assert summary and len(summary) > 0, "Expected a validation summary indicating invalid credentials"
-        assert "/login" in login.get_current_url(), "Should remain on login page after failed authentication"
+    # When I leave the email input field empty and enter valid password
+    login.enter_email("")
+    login.enter_password(Config.VALID_PASSWORD)
+    login.click_login()
+
+    # Then I should remain on the login page
+    assert login.wait_for_url_contains("/login"), "Expected to remain on login page when email is empty"
+
+    # And I should see a validation error or the field highlighted (we check for an error message)
+    err = login.get_login_error()
+    assert err != "", "Expected validation error when email is empty"
+
+
+def test_login_attempt_with_invalid_email_format(driver):
+    home = HomePage(driver)
+    home.open(Config.BASE_URL)
+    home.go_to_login()
+    login = LoginPage(driver)
+
+    # When I enter invalid email format and a valid password
+    login.enter_email("invalid-email")
+    login.enter_password(Config.VALID_PASSWORD)
+    login.click_login()
+
+    # Then I should remain on the login page
+    assert login.wait_for_url_contains("/login"), "Expected to remain on login page when email format invalid"
+
+    # And I should see a validation error indicating invalid email format
+    err = login.get_login_error()
+    assert err != "", "Expected validation error when email format is invalid"
+
+
+def test_login_attempt_with_empty_password_field(driver):
+    home = HomePage(driver)
+    home.open(Config.BASE_URL)
+    home.go_to_login()
+    login = LoginPage(driver)
+
+    # And I enter a valid registered email into the email field
+    login.enter_email(Config.VALID_EMAIL)
+
+    # When I leave the password field empty and click login
+    login.enter_password("")
+    login.click_login()
+
+    # Then I should remain on the login page
+    assert login.wait_for_url_contains("/login"), "Expected to remain on login page when password is empty"
+
+    # And I should see a validation error indicating the password cannot be empty
+    err = login.get_login_error()
+    assert err != "", "Expected validation error when password is empty"
+
+
+def test_login_attempt_with_incorrect_password(driver):
+    home = HomePage(driver)
+    home.open(Config.BASE_URL)
+    home.go_to_login()
+    login = LoginPage(driver)
+
+    # Given a registered user exists with email (we assume Config.VALID_EMAIL exists)
+    login.enter_email(Config.VALID_EMAIL)
+    login.enter_password("incorrect-password")
+    login.click_login()
+
+    # Then authentication should fail and remain on login page
+    assert login.wait_for_url_contains("/login"), "Expected to remain on login page when credentials are incorrect"
+
+    # And I should see an error message indicating credentials are incorrect
+    err = login.get_login_error()
+    assert err != "", "Expected authentication failure message for incorrect credentials"

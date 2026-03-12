@@ -1,20 +1,15 @@
 import pytest
-import os
 from utils.driver_factory import create_chrome_driver
+from config import DEFAULT_TIMEOUT
 
 
-@pytest.fixture(scope="session")
-def driver():
-    """Session-scoped WebDriver. Tear down at session end."""
-    headless = os.environ.get("HEADLESS", "false").lower() == "true"
-    drv = create_chrome_driver(headless=headless)
-    yield drv
+@pytest.fixture(scope='function')
+def driver(request):
+    """Creates a WebDriver and ensures it quits after the test."""
+    headless_flag = False
+    driver = create_chrome_driver(headless=headless_flag)
+    yield driver
     try:
-        drv.quit()
+        driver.quit()
     except Exception:
         pass
-
-
-@pytest.fixture
-def base_url():
-    return os.environ.get("BASE_URL", "https://demowebshop.tricentis.com")

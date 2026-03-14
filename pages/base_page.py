@@ -1,59 +1,42 @@
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from typing import Tuple
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.remote.webdriver import WebDriver
+from utils import config
 
-
+# BasePage implements common utilities used by all page objects. Single Responsibility Principle: one class for common page behavior.
 class BasePage:
-    """BasePage encapsulates common WebDriver actions and waiting utilities.
-    Follows Single Responsibility: only provides driver and common helpers.
-    """
-
-    def __init__(self, driver: WebDriver, timeout: int = 10) -> None:
+    def __init__(self, driver: WebDriver):
         self.driver = driver
-        self.timeout = timeout
+        self.wait = WebDriverWait(driver, config.EXPLICIT_WAIT)
 
-    def find(self, by: By, locator: str):
-        """Find a single element after waiting for presence."""
-        return WebDriverWait(self.driver, self.timeout).until(
-            EC.presence_of_element_located((by, locator))
-        )
+    def open(self, url: str):
+        self.driver.get(url)
 
-    def find_visible(self, by: By, locator: str):
-        """Wait until an element is visible and return it."""
-        return WebDriverWait(self.driver, self.timeout).until(
-            EC.visibility_of_element_located((by, locator))
-        )
+    def find(self, by_locator):
+        return self.wait.until(EC.presence_of_element_located(by_locator))
 
-    def click(self, by: By, locator: str) -> None:
-        el = self.find_visible(by, locator)
-        el.click()
+    def find_visible(self, by_locator):
+        return self.wait.until(EC.visibility_of_element_located(by_locator))
 
-    def type_text(self, by: By, locator: str, text: str) -> None:
-        el = self.find_visible(by, locator)
-        el.clear()
-        el.send_keys(text)
+    def click(self, by_locator):
+        element = self.find_visible(by_locator)
+        element.click()
 
-    def is_displayed(self, by: By, locator: str) -> bool:
+    def type(self, by_locator, text: str):
+        element = self.find_visible(by_locator)
+        element.clear()
+        element.send_keys(text)
+
+    def is_element_visible(self, by_locator) -> bool:
         try:
-            return self.find_visible(by, locator).is_displayed()
-        except TimeoutException:
-            return False
-
-    def get_current_url(self) -> str:
-        return self.driver.current_url
-
-    def wait_for_url_contains(self, fragment: str) -> bool:
-        try:
-            WebDriverWait(self.driver, self.timeout).until(
-                EC.url_contains(fragment)
-            )
+            self.find_visible(by_locator)
             return True
         except TimeoutException:
             return False
 
-    def get_element_text(self, by: By, locator: str) -> str:
-        el = self.find_visible(by, locator)
-        return el.text
+    def current_url_contains(self, substring: str) -> bool:
+        try:
+            return self.wait.until(lambda d: substring in d.current_url)
+        except TimeoutException:
+            return False

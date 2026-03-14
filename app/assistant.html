@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistant Payload Inspector</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    textarea { width: 100%; height: 200px; }
+    #response { margin-top: 20px; padding: 10px; border: 1px solid #ccc; min-height: 40px; }
+    .prompt { color: #b33; }
+    .ok { color: #080; }
+  </style>
+</head>
+<body>
+  <h1>Assistant Payload Inspector (Test Page)</h1>
+  <p>Paste request payload JSON into the textarea and click Inspect.</p>
+  <textarea id="payload" placeholder='{"user_stories": [...]}'>
+{
+  "example_key": "example_value"
+}
+  </textarea>
+  <br />
+  <button id="inspect">Inspect Payload</button>
+
+  <div id="response" aria-live="polite"></div>
+
+  <script>
+    function isArrayEmpty(arr) {
+      return !Array.isArray(arr) || arr.length === 0;
+    }
+
+    document.getElementById('inspect').addEventListener('click', function () {
+      const resp = document.getElementById('response');
+      resp.className = '';
+      resp.textContent = '';
+      let raw = document.getElementById('payload').value;
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (e) {
+        resp.className = 'prompt';
+        resp.textContent = 'Invalid JSON. Please provide a valid JSON payload.';
+        return;
+      }
+
+      if (!('user_stories' in parsed) || isArrayEmpty(parsed.user_stories)) {
+        resp.className = 'prompt';
+        resp.textContent = 'Please provide the "user_stories" JSON array in the format: { "user_stories": [ { "id": "US1", "title": "...", "description": "..." } ] }';
+        // Simulate assistant waiting for user input by showing guidance in the response area
+      } else {
+        resp.className = 'ok';
+        resp.textContent = 'Received ' + parsed.user_stories.length + ' user_stories. Proceeding to generate test cases...';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+Missing required inputs — please provide the following before I generate the Selenium POM test code:
+
+1) language: (e.g., "Python", "Java")
+2) framework: (e.g., "Selenium")
+3) test runner / test framework preference:
+   - For Python: "pytest" or "unittest"
+   - For Java: "TestNG" or "JUnit"
+4) Choose one of the options (approve generation workflow): "approved" | "skip-docs" | "revise" | "finish"
+5) Credentials for the "Successful Login" scenario:
+   - Provide a test account email and password, OR tell me to use placeholders/mock credentials and not perform a real authenticated run.
+6) Any additional preferences:
+   - Browser to target (default: Chrome)
+   - Use of WebDriver manager (yes/no)
+   - Parallel execution required (yes/no)
+
+Reply with the above details and I will generate:
+- Page objects (separate files)
+- Tests (separate files)
+- Utilities (driver factory, config, helpers)
+- README or minimal run instructions (optional, per your choice)
+
+Note: I will follow POM and SOLID principles and separate files for maintainability.

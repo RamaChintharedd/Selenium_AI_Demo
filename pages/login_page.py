@@ -1,41 +1,50 @@
 from selenium.webdriver.common.by import By
-from .base_page import BasePage
-
+from pages.base_page import BasePage
+from selenium.webdriver.common.keys import Keys
 
 class LoginPage(BasePage):
-    """Page object for the login page.
-    Encapsulates actions and verifications for login interactions.
-    """
-
-    # Locators - chosen to be robust for typical Demo Web Shop
+    # Locators
     EMAIL_INPUT = (By.ID, "Email")
     PASSWORD_INPUT = (By.ID, "Password")
-    LOGIN_BUTTON = (By.CSS_SELECTOR, "input.login-button")
-    LOGIN_ERROR = (By.CSS_SELECTOR, "div.validation-summary-errors li")
-    EMAIL_FIELD_CONTAINER = (By.ID, "Email")  # used for visibility checks
+    LOGIN_BUTTON = (By.CSS_SELECTOR, "input.login-button[type='submit'], button.login-button")
+    VALIDATION_SUMMARY = (By.CSS_SELECTOR, "div.message-error.validation-summary-errors")
 
     def __init__(self, driver):
         super().__init__(driver)
 
-    def is_email_field_present(self) -> bool:
-        return self.is_displayed(*self.EMAIL_INPUT)
+    def is_at_login_page(self) -> bool:
+        return self.current_url_contains("/login")
 
-    def is_password_field_present(self) -> bool:
-        return self.is_displayed(*self.PASSWORD_INPUT)
+    def enter_email(self, email: str):
+        self.type(self.EMAIL_INPUT, email)
 
-    def is_login_button_present(self) -> bool:
-        return self.is_displayed(*self.LOGIN_BUTTON)
+    def enter_password(self, password: str):
+        self.type(self.PASSWORD_INPUT, password)
 
-    def enter_email(self, email: str) -> None:
-        self.type_text(*self.EMAIL_INPUT, text=email)
+    def click_login(self):
+        self.click(self.LOGIN_BUTTON)
 
-    def enter_password(self, password: str) -> None:
-        self.type_text(*self.PASSWORD_INPUT, text=password)
+    def email_validation_message(self):
+        """Return HTML5 built-in validation message if present or empty string otherwise."""
+        try:
+            el = self.find(self.EMAIL_INPUT)
+            return el.get_attribute("validationMessage") or ""
+        except Exception:
+            return ""
 
-    def click_login(self) -> None:
-        self.click(*self.LOGIN_BUTTON)
+    def password_validation_message(self):
+        try:
+            el = self.find(self.PASSWORD_INPUT)
+            return el.get_attribute("validationMessage") or ""
+        except Exception:
+            return ""
 
-    def get_login_error(self) -> str:
-        if self.is_displayed(*self.LOGIN_ERROR):
-            return self.get_element_text(*self.LOGIN_ERROR)
-        return ""
+    def has_error_summary(self) -> bool:
+        return self.is_element_visible(self.VALIDATION_SUMMARY)
+
+    def get_error_summary_text(self) -> str:
+        try:
+            el = self.find(self.VALIDATION_SUMMARY)
+            return el.text.strip()
+        except Exception:
+            return ""

@@ -1,0 +1,23 @@
+No BDD feature files were provided in the request.
+
+Action required:
+- Please supply the `bdd_features` array. Each entry should be an object with:
+  - test_case_title: string
+  - feature_file: string (Gherkin syntax, full feature content)
+- Also confirm the target language (e.g., "Python", "Java") and framework (e.g., "Selenium").
+
+Example payload (JSON):
+{
+  "bdd_features": [
+    {
+      "test_case_title": "Login with valid credentials",
+      "feature_file": "Feature: Login\n  Scenario: Successful login\n    Given I open the login page\n    When I enter valid credentials\n    Then I should be logged in"
+    }
+  ],
+  "language": "Python",
+  "framework": "Selenium"
+}
+
+Once you provide the BDD features and the language/framework, I will generate a complete, POM-based Selenium test suite separated into page objects, tests, and utilities.
+
+Request status: revise

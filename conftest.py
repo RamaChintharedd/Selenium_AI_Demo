@@ -1,20 +1,24 @@
-import pytest
 import os
+import pytest
 from utils.driver_factory import create_chrome_driver
+from pages.home_page import HomePage
+from pages.login_page import LoginPage
 
 
 @pytest.fixture(scope="session")
 def driver():
-    """Session-scoped WebDriver. Tear down at session end."""
-    headless = os.environ.get("HEADLESS", "false").lower() == "true"
-    drv = create_chrome_driver(headless=headless)
-    yield drv
-    try:
-        drv.quit()
-    except Exception:
-        pass
+    """Create a single WebDriver instance per test session. Quits when done."""
+    headless = os.getenv("HEADLESS", "false").lower() in ("1", "true", "yes")
+    driver = create_chrome_driver(headless=headless, implicit_wait=1)
+    yield driver
+    driver.quit()
 
 
-@pytest.fixture
-def base_url():
-    return os.environ.get("BASE_URL", "https://demowebshop.tricentis.com")
+@pytest.fixture()
+def home_page(driver):
+    return HomePage(driver)
+
+
+@pytest.fixture()
+def login_page(driver):
+    return LoginPage(driver)
